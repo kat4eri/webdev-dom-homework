@@ -1,276 +1,190 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Проект "Комменты 3"</title>
+    <title>Проект "Комменты"</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles.css" />
   </head>
 
   <body>
-    <div class="container">
-      <ul class="comments">
-      
+    <div class="container" >
+      <ul class="comments" id="comment_contaiter">
+
       </ul>
-      <div class="add-form">
+      <div  class="add-form">
         <input
+          id="input_name"
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
         />
         <textarea
+          id="text_massage"
           type="textarea"
           class="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
         ></textarea>
         <div class="add-form-row">
-          <button class="add-form-button">Написать</button>
+          <button id="button_send" class="add-form-button pointer-events">Написать</button>
         </div>
 
-        <button class="deletelastcomment">Удалить последний комментарий</button>
       </div>
     </div>
   </body>
 
   <script>
-    const comments_containerElement = document.querySelector('.comments');
-    const massage_sendButton = document.querySelector('.add-form-button');
-    const nameinputElement = document.querySelector('.add-form-name');
-    const massageinputElement = document.querySelector('.add-form-text');
-    const lastcommentDeletebutton = document.querySelector('.deletelastcomment');
-    const likebuttonElements = document.querySelectorAll('.like-button');
-    massage_sendButton.disabled = true;
+      //дз 2.9
+      const input_name = document.getElementById("input_name");
+      const text_massage = document.getElementById("text_massage");
+      const button_send = document.getElementById("button_send");
+      const add_form = document.getElementById("add_form");
+      const comment_contaiter = document.getElementById("comment_contaiter");
+      const likescounters = document.querySelectorAll('.likes-counter')
+      const now = new Date();
+      const data = (now.getDate() + "." + 0 + (Number(now.getMonth()) + 1) + "." + (Number(now.getFullYear()) - 2000) + " " + now.getHours() + ":" + now.getMinutes());
 
 
-    const comments = [
-      {
-        name : "Глеб Фокин",
-        date : "12.02.22 12:18",
-        massage : "Это будет первый комментарий на этой странице",
-        isLike : false,
-        Likecounter : 3,
-        isEdit : true
-      },
-      {
-        name : "Варвара Н.",
-        date : "13.02.22 19:22",
-        massage : " Мне нравится как оформлена эта страница! ❤",
-        isLike : true,
-        Likecounter : 75,
-        isEdit : true,
-      }
-    ]
+     
+
+    const comments = []
+		
+
+        const fetchPromise = fetch(
+          `https://wedev-api.sky.pro/api/v1/:gleb-fokin/comments`,
+          {
+            method: "GET",
+          }
+        );
+
+        fetchPromise.then((response) => {
+          const jsonpromise = response.json();
+          jsonpromise.then((responsedata) => {
+            console.log(responsedata);
+            comments = responsedata.comments
+            RenderComments();
+          } )
+         
+        })
     
 
-    const likebuttonListners = () => {
-      const likebuttonElements = document.querySelectorAll('.like-button');
-      for(const likebuttonElement of likebuttonElements) {
-        likebuttonElement.addEventListener("click" , (event) => {
-          event.stopPropagation();
-          if ( comments[likebuttonElement.dataset.index].isLike === false ) {
-            comments[likebuttonElement.dataset.index].Likecounter = comments[likebuttonElement.dataset.index].Likecounter + 1;
-            comments[likebuttonElement.dataset.index].isLike = true;
-            likebuttonElement.classList.add("active-like");
 
-          } else if ( comments[likebuttonElement.dataset.index].isLike === true ) {
-            comments[likebuttonElement.dataset.index].isLike = false;
-            comments[likebuttonElement.dataset.index].Likecounter = comments[likebuttonElement.dataset.index].Likecounter - 1;
-            likebuttonElement.classList.remove("active-like");
 
-          }
-          renderComments();
-          
+
+
+    const likesCounter = () => {
+      const likeButtons = document.querySelectorAll(".like-button")
+      for (const likeButton of likeButtons) {
+        likeButton.addEventListener("click", () => {
+          index = likeButton.dataset.index;
+          if(comments[index].isLike){
+            comments[index].likesCounter--
+            comments[index].isLike = false;
+            }else {
+              comments[index].likesCounter++;
+              comments[index].isLike = true;
+            }
+            RenderComments();  
         })
       }
     }
 
+    const InitReply = () =>  {
+      const comtexts = document.querySelectorAll(".comment-text");
+      for(const comtext of comtexts){
+         comtext.addEventListener("click", () => {
+          index = comtext.dataset.comindex;
+          text_massage.value = `>${comments[index].text}`;
 
-    const editbuttonListners = () => {
-      const editbuttonElements = document.querySelectorAll(".editimg");
-      for (const editbuttonElement of editbuttonElements) {
-        editbuttonElement.addEventListener("click" , (event) => {
-          event.stopPropagation();
-            comments[editbuttonElement.dataset.index].isEdit = false;
-            renderComments();
-        })
-      }
+         });
+      };
     }
 
-
-    const doneImgButtonListnes = () => {
-      const donebuttonElements = document.querySelectorAll(".doneimg");
-      for ( const donebuttonElement of donebuttonElements ){
-        donebuttonElement.addEventListener("click" , (event) => {
-          event.stopPropagation();
-          const addformTextEdit = document.querySelectorAll(".addformedit");
-            comments[donebuttonElement.dataset.index].massage = addformTextEdit[donebuttonElement.dataset.index].value; 
-            comments[donebuttonElement.dataset.index].isEdit = true;
-            renderComments();
-        })
-        
-      }
-    }
-
-
-    const quoteElementsListners = () => {
-         const quoteElements = document.querySelectorAll(".comment-text");
-         for ( const quoteElement of quoteElements ) {
-          quoteElement.addEventListener("click" , () => {
-            massageinputElement.value = ">" + comments[quoteElement.dataset.index].massage + "\n"+ comments[quoteElement.dataset.index].name + "\n" ;
-            renderComments();
-          })
-         }
-    }
+    InitReply();
 
 
 
 
 
-
-
-    const renderComments = () => {
-      const commentshtml = comments.map((comment , index) => {
-        let activelikeclass;
-        if (comments[index].isLike === true) {
-          activelikeclass = "active-like"
-        }else {
-          activelikeclass = ""
-        }
-
-        let isEditClass;
-        let massageHideClass;
-        let doneHideClass;
-        if ( comments[index].isEdit === true){
-          isEditClass = "display-none"
-          massageHideClass = ""
-          doneHideClass = "display-none"
-        } else {
-          isEditClass = ""
-          massageHideClass = "display-none"
-          doneHideClass = ""
-   
-        }
-
-
-        return `
-        <li class="comment" data-index="${index}">
-          <div class="comment-header">
+    const RenderComments = () => {  
+      const commentshtml = comments.map((comment,index)=>{
+        return `<li class="comment">
+          <div class="comment-header display_flex">
             <div>${comment.name}</div>
             <div>${comment.date}</div>
           </div>
           <div class="comment-body">
-             <textarea
-                  type="textarea"
-                  class="add-form-text addformedit ${isEditClass}"
-                  placeholder="Введите ваш коментарий"
-                  rows="4"
-              >${comments[index].massage}</textarea>
-              <img class ="doneimg ${doneHideClass}" src="img/done.png" data-index="${index}">
-            <div class="comment-text ${massageHideClass}" data-index="${index}">
-              ${comment.massage}
-              <img class ="editimg" src="img/edit.png" data-index="${index}">
+            <div class="comment-text" data-comindex="${index}">
+              ${comment.text}
             </div>
           </div>
           <div class="comment-footer">
             <div class="likes">
-              <span class="likes-counter">${comment.Likecounter}</span>
-              <button class="like-button ${activelikeclass}" data-index="${index}" data-like="${comment.isLike}"></button>
-              </div>
-          </div>
-        </li>`  
-      }).join(",")
-      comments_containerElement.innerHTML = commentshtml;
-
-      likebuttonListners();
-      editbuttonListners();
-      doneImgButtonListnes();
-      quoteElementsListners();
+              <span class="likes-counter">${comment.likesCounter} Лайка</span>
+              <button  data-index="${index}" class="like-button ${comment.isLike ? 'activelike' : ''}"></button>
+            </div>
+          </div></li>`
+      }).join("");
+      comment_contaiter.innerHTML = commentshtml;
+      likesCounter();
+      InitReply();
     }
-
-      
-    renderComments();
-
-    
-
-    
-
-
-
-
-
-    function addComment() {
-       
-      if( Number((new Date()).getMonth()) === 10 || Number((new Date()).getMonth()) === 11 || Number((new Date()).getMonth()) === 12 ) {
-        mounthdate = (new Date()).getMonth();
-    }else {
-        mounthdate = '0' + (new Date()).getMonth();
-    }
-
-    let massageDate = (new Date()).getDate() + "." + mounthdate  + "." + ((new Date()).getFullYear() - 2000 ) + " " + ((new Date()).getHours()) + ":" + ((new Date()).getMinutes());
-
-
-
-
-      if ( nameinputElement.value === "" &&  massageinputElement.value === "" ){
-        nameinputElement.classList.add("errorinput");
-        massageinputElement.classList.add("errorinput");
-        return
-      }else if ( nameinputElement.value === "" ) {
-        nameinputElement.classList.add("errorinput");
-        return
-      }else if ( massageinputElement.value === "" ) {
-        massageinputElement.classList.add("errorinput");
-        return
-      }
-
-        comments.push({
-          name : nameinputElement.value.replaceAll('<', '&lt;').replaceAll('>','&gt;'),
-          date : massageDate,
-          massage : massageinputElement.value.replaceAll('<', '&lt;').replaceAll('>','&gt;'),
-          isLike : false,
-          Likecounter : 0,
-          isEdit : true
-        })
-        
-        nameinputElement.value = "";
-        massageinputElement.value = "";
-        nameinputElement.classList.remove("errorinput");
-        massageinputElement.classList.remove("errorinput");
-
-        renderComments();
-
-
-    }
-
-    massage_sendButton.addEventListener("click" , addComment);
-
-    nameinputElement.addEventListener ("input" , () => {
-      massage_sendButton.disabled = false;
-    })
-
-    massageinputElement.addEventListener ("input" , () => {
-      massage_sendButton.disabled = false;
-    })
-
-    lastcommentDeletebutton.addEventListener ("click", () => {
-      comments_containerElement.removeChild(comments_containerElement.lastChild);
-    })
+    RenderComments();
 
 
 
 
  
-    
+  
+ 
+
+
+    button_send.addEventListener("click" , () => {
+        if( input_name.value === ""){
+          input_name.classList.add("error");
+          return
+        }
+        if( text_massage.value === ""){
+          text_massage.classList.add("error")
+          return
+        }
+      
+        comments.push({
+          name: input_name.value.replaceAll("<","&lt;").replaceAll(">","&gt;"),
+          date: data,
+          text: text_massage.value.replaceAll("<","&lt;").replaceAll(">","&gt;"),
+          date: data,
+          likesCounter: 0,
+          isLike: false,
+        })
+
+        input_name.value = ""
+        text_massage.value=""
+        input_name.classList.remove("error");
+        text_massage.classList.remove("error");
+        button_send.classList.add("pointer-events");
+        RenderComments();
+    })
+
+    input_name.addEventListener("input", ()=> {
+        button_send.classList.remove('pointer-events')
+      });
+
+      text_massage.addEventListener("input", ()=> {
+        button_send.classList.remove('pointer-events')
+      });
 
 
 
 
     
+
     
-    
-324342234
 
 
+    
+
+  
 
   </script>
 </html>
