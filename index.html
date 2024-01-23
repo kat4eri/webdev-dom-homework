@@ -1,190 +1,220 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Проект "Комменты"</title>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-
-  <body>
-    <div class="container" >
-      <ul class="comments" id="comment_contaiter">
-
-      </ul>
-      <div  class="add-form">
-        <input
-          id="input_name"
-          type="text"
-          class="add-form-name"
-          placeholder="Введите ваше имя"
-        />
-        <textarea
-          id="text_massage"
-          type="textarea"
-          class="add-form-text"
-          placeholder="Введите ваш коментарий"
-          rows="4"
-        ></textarea>
-        <div class="add-form-row">
-          <button id="button_send" class="add-form-button pointer-events">Написать</button>
-        </div>
-
+<head>
+  <title>Проект "Комменты"</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <ul id="comments" class="comments">
+    </ul>
+    <div id="add-form" class="add-form">
+      <input id="add-name" type="text" class="add-form-name" placeholder="Введите ваше имя" />
+      <textarea id="add-text" type="textArea" class="add-form-text" placeholder="Введите ваш коментарий"
+        rows="4"></textarea>
+      <div class="add-form-row">
+        <button id="add-form-button" class="add-form-button">Написать</button>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+<script>
+  "use strict";
+  // Поиск в именах id 
+  const buttonElement = document.getElementById("add-form-button");
+  const listElement = document.getElementById("comments");
+  const textAreaElement = document.getElementById("add-text");
+  const inputElement = document.getElementById("add-name");
+  const outerFormElement = document.getElementById("add-form");
+  const buttonDeleteElement = document.getElementById("delete-form-button")
+  const formatDateTime = (date) => { let dateTime = new Date(date);
+    const day = String(dateTime.getDate()).padStart(2, '0');
+    const month = String(dateTime.getMonth()).padStart(2, '0');
+    const year = String(dateTime.getFullYear() - 2000);
+    const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    const hours = String(dateTime.getHours()).padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  };
+  let urlApi = "https://wedev-api.sky.pro/api/v1/zenin-dmitry/comments";
+  const getComments = () => {
+    let fetchPromise = fetch(urlApi,
+      {
+        method: 'GET',
+      });
+    fetchPromise.then((response) => {
+      const jsonPromise = response.json();
+      jsonPromise.then((responseData) => {
 
-  <script>
-      //дз 2.9
-      const input_name = document.getElementById("input_name");
-      const text_massage = document.getElementById("text_massage");
-      const button_send = document.getElementById("button_send");
-      const add_form = document.getElementById("add_form");
-      const comment_contaiter = document.getElementById("comment_contaiter");
-      const likescounters = document.querySelectorAll('.likes-counter')
-      const now = new Date();
-      const data = (now.getDate() + "." + 0 + (Number(now.getMonth()) + 1) + "." + (Number(now.getFullYear()) - 2000) + " " + now.getHours() + ":" + now.getMinutes());
+        commentList = responseData.comments.map((comment) => {
+          return {
+            name: comment.author.name,
+            date: formatDateTime(comment.date),
+            id: comment.id,
+            isLiked: comment.isLiked,
+            likes: comment.likes,
+            text: comment.text,
+          };
+        });
+        console.log(commentList);
+        renderComments();
+      });
+    });
+  };
 
+  //1.commentList необходимо получать из хранилища коммент через API (метод GET). Строки 47-62
+  getComments();
 
-     
-
-    const comments = []
-		
-
-        const fetchPromise = fetch(
-          `https://wedev-api.sky.pro/api/v1/:gleb-fokin/comments`,
-          {
-            method: "GET",
-          }
-        );
-
-        fetchPromise.then((response) => {
-          const jsonpromise = response.json();
-          jsonpromise.then((responsedata) => {
-            console.log(responsedata);
-            comments = responsedata.comments
-            RenderComments();
-          } )
-         
-        })
+  //Сохранение данных форм комментов из html в js
+  let commentList = [
+    /*     {
+          name: 'Глеб Фокин',
+          date: '12.02.22 12:18',
+          text: 'Это будет первый комментарий на этой странице',
+          likeCounter: 3,
+          isLiked: true,
+        },
+        {
+          name: 'Варвара',
+          date: '13.02.22 19:22',
+          text: 'Мне нравится как оформлена эта страница! ❤',
+          likeCounter: 75,
+          isLiked: false,
+        },
+        {
     
+        }, */
+  ];
 
 
-
-
-
-    const likesCounter = () => {
-      const likeButtons = document.querySelectorAll(".like-button")
-      for (const likeButton of likeButtons) {
-        likeButton.addEventListener("click", () => {
-          index = likeButton.dataset.index;
-          if(comments[index].isLike){
-            comments[index].likesCounter--
-            comments[index].isLike = false;
-            }else {
-              comments[index].likesCounter++;
-              comments[index].isLike = true;
-            }
-            RenderComments();  
-        })
-      }
-    }
-
-    const InitReply = () =>  {
-      const comtexts = document.querySelectorAll(".comment-text");
-      for(const comtext of comtexts){
-         comtext.addEventListener("click", () => {
-          index = comtext.dataset.comindex;
-          text_massage.value = `>${comments[index].text}`;
-
-         });
-      };
-    }
-
-    InitReply();
-
-
-
-
-
-    const RenderComments = () => {  
-      const commentshtml = comments.map((comment,index)=>{
-        return `<li class="comment">
-          <div class="comment-header display_flex">
-            <div>${comment.name}</div>
-            <div>${comment.date}</div>
+  //Отрисовка формы существующих комментов
+  const renderComments = () => {
+    const commentsHtml = commentList.map((comment, index) => {
+      return `<li class="comment" data-index="${index}">
+        <div class="comment-header">
+          <div id="add-name">${comment.name}</div>
+          <div>${comment.date}</div>
+        </div>
+        <div class="comment-body">
+          <div id="add-text" class="comment-text" >
+            ${comment.text}
           </div>
-          <div class="comment-body">
-            <div class="comment-text" data-comindex="${index}">
-              ${comment.text}
-            </div>
+        </div>
+        <div class="comment-footer">
+          <button id="delete-form-button" class="delete-form-button" data-index="${index}">Удалить</button>
+          <div class="likes">
+            <span class="likes-counter">${comment.likes}</span>
+            <button class="like-button ${comment.isLiked ? "-active-like" : ""}" data-index="${index}"></button>
           </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">${comment.likesCounter} Лайка</span>
-              <button  data-index="${index}" class="like-button ${comment.isLike ? 'activelike' : ''}"></button>
-            </div>
-          </div></li>`
-      }).join("");
-      comment_contaiter.innerHTML = commentshtml;
-      likesCounter();
-      InitReply();
+        </div>
+        </li>`;
+    }).join("");
+    listElement.innerHTML = commentsHtml;
+    initLikeListener();
+    initDeleteButtonsListeners();
+    quoteCommets();
+  };
+  //Активность кнопки удаления
+  const initDeleteButtonsListeners = () => {
+    const deleteButtonsElements = document.querySelectorAll(".delete-form-button");
+    for (const deleteButtonsElement of deleteButtonsElements) {
+      deleteButtonsElement.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const index = deleteButtonsElement.dataset.index;
+        commentList.splice(index, 1);
+        renderComments();
+      });
     }
-    RenderComments();
-
-
-
-
- 
-  
- 
-
-
-    button_send.addEventListener("click" , () => {
-        if( input_name.value === ""){
-          input_name.classList.add("error");
-          return
-        }
-        if( text_massage.value === ""){
-          text_massage.classList.add("error")
-          return
-        }
-      
-        comments.push({
-          name: input_name.value.replaceAll("<","&lt;").replaceAll(">","&gt;"),
-          date: data,
-          text: text_massage.value.replaceAll("<","&lt;").replaceAll(">","&gt;"),
-          date: data,
-          likesCounter: 0,
-          isLike: false,
+  };
+  //Активность кнопки лайк
+  const initLikeListener = () => {
+    const buttonLike = document.querySelectorAll(".like-button");
+    for (const iteratorLike of buttonLike) {
+      iteratorLike.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const index = iteratorLike.dataset.index;
+        commentList[index].likes += commentList[index].isLiked ? -1 : +1;
+        commentList[index].isLiked = !commentList[index].isLiked;
+        renderComments(); //перерисовываем форму для лайков с счетчиком
+      });
+    }
+  };
+  //Цитата коммента
+  const quoteCommets = () => {
+    const commentElements = document.querySelectorAll(".comment");
+    for (const commentElement of commentElements) {
+      commentElement.addEventListener("click", () => {
+        const index = commentElement.dataset.index;
+        const commentText = commentList[index].text;
+        const commentAuthor = commentList[index].name;
+        textAreaElement.value = `${commentText} > ${commentAuthor}`;
+      })
+    }
+  }
+  //Кнопка с добавлением коммента
+  buttonElement.addEventListener("click", () => {
+    inputElement.classList.remove("error");
+    if (inputElement.value === "") {
+      inputElement.classList.add("error");
+    }
+    if (textAreaElement.value === "") {
+      textAreaElement.classList.add("error");
+      return;
+    };
+    const sanitizeHtml = (htmlString) => {
+      return htmlString
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    };
+    //3. необходимо добавлять в хранилище коммент (method POST).
+    let fetchPromise = fetch(urlApi,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          name: sanitizeHtml(inputElement.value),
+          text: sanitizeHtml(textAreaElement.value),
+          date: formatDateTime(new Date),
+          isLiked: false,
+          likes: 0,
         })
-
-        input_name.value = ""
-        text_massage.value=""
-        input_name.classList.remove("error");
-        text_massage.classList.remove("error");
-        button_send.classList.add("pointer-events");
-        RenderComments();
-    })
-
-    input_name.addEventListener("input", ()=> {
-        button_send.classList.remove('pointer-events')
       });
 
-      text_massage.addEventListener("input", ()=> {
-        button_send.classList.remove('pointer-events')
+    fetchPromise.then((response) => {
+      const jsonPromise = response.json();
+      jsonPromise.then((responseData) => {
+        /*         let fetchPromise = fetch(urlApi,
+                  {
+                    method: 'GET',
+                  });
+                fetchPromise.then((response) => {
+                  const jsonPromise = response.json();
+                  jsonPromise.then((responseData) => {
+        
+                    commentList = responseData.comments.map((comment) => {
+                      return {
+                        name: comment.author.name,
+                        date: formatDateTime(comment.date),
+                        id: comment.id,
+                        isLiked: comment.isLiked,
+                        likes: comment.likes,
+                        text: comment.text,
+                      };
+                    });
+                    console.log(commentList);
+                    renderComments();
+                  });
+                }); */
+        getComments();
+
       });
+       });
 
-
-
-
-    
-
-    
-
-
-    
-
-  
-
-  </script>
+    inputElement.value = "";
+    textAreaElement.value = "";
+    renderComments();
+  });
+  renderComments();
+</script>
 </html>
