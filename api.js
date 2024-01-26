@@ -1,4 +1,4 @@
-import { formatDateTime } from "./datetime.js";
+import { timeFunction } from "./date.js";
 let urlApi = "https://wedev-api.sky.pro/api/v1/zenin-dmitry/comments";
 export function get() {
     return fetch(urlApi,

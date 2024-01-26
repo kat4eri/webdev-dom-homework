@@ -1,5 +1,5 @@
 
-import { formatDateTime } from "./datetime.js";
+import { timeFunction } from "./date.js";
 import { get, post } from "./api.js";
 import { initDeleteButtonsListeners } from "./delbutton.js";
 import { hideSeeAddComment } from "./hide.js";
@@ -9,9 +9,7 @@ const buttonElement = document.getElementById("add-form-button");
 
 const textAreaElement = document.getElementById("add-text");
 const inputElement = document.getElementById("add-name");
-const outerFormElement = document.getElementById("add-form");
 
-const addFormElement = document.querySelector(".add-form");
 
 
 //Прелоадер страницы
@@ -23,7 +21,7 @@ const getComments = () => {
         commentList = responseData.comments.map((comment) => {
             return {
                 name: comment.author.name,
-                date: formatDateTime(comment.date),
+                date: timeFunction(comment.date),
                 id: comment.id,
                 isLiked: comment.isLiked,
                 likes: comment.likes,
