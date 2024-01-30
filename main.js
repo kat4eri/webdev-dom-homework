@@ -30,13 +30,11 @@ const getComments = () => {
         });
         let hidePreload = document.querySelector(".preload").style.display = "none";
         console.log(commentList);
-        hideSeeAddComment();
         renderComments(commentList);
         buttonElement.disabled = false;
     });
 };
 
-hideSeeAddComment();
 
 //1.commentList необходимо получать из хранилища коммент через API (метод GET). Строки 47-62
 getComments();

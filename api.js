@@ -17,7 +17,7 @@ export function post(name, text) {
             body: JSON.stringify({
                 name: name,
                 text: text,
-                date: formatDateTime(new Date),
+                date: timeFunction(new Date),
                 isLiked: false,
                 likes: 0,
                 /* forceError: true, */
